@@ -9,7 +9,7 @@ export const revalidate = 1800
 
 export const metadata: Metadata = {
   title: 'Archive',
-  description: 'The complete photographic archive — searchable and browsable by subject, location, and date.',
+  description: 'The complete photographic archive. Searchable and browsable by subject, location, and date.',
 }
 
 async function getAllPhotos(): Promise<Photo[]> {

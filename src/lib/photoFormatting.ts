@@ -1,15 +1,15 @@
 export function formatAperture(aperture?: number): string {
-  if (!aperture) return '—'
+  if (!aperture) return '-'
   return `f/${aperture.toFixed(1)}`
 }
 
 export function formatISO(iso?: number): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   return `ISO ${iso}`
 }
 
 export function formatFocalLength(fl?: number): string {
-  if (!fl) return '—'
+  if (!fl) return '-'
   return `${fl}mm`
 }
 

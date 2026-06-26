@@ -53,7 +53,7 @@ export function generateAltText(photo: Photo): string {
   // Aim for 60–90 characters
   const text = parts.join('. ')
   if (text.length < 60) {
-    return `${text} — fine art photography`
+    return `${text} - Aiden's Photography Portfolio`
   }
   return text.slice(0, 90)
 }

@@ -48,7 +48,7 @@ export default function PhotoLightbox({ photo, onClose }: PhotoLightboxProps) {
       aria-modal="true"
       aria-label={`Viewing: ${alt}`}
     >
-      {/* Inner container — stop propagation so click on image doesn't close */}
+      {/* Inner container - stop propagation so click on image doesn't close */}
       <div
         className="relative w-full h-full flex items-center justify-center p-4 md:p-10"
         onClick={(e) => e.stopPropagation()}

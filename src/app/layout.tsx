@@ -6,9 +6,9 @@ import { Toaster } from 'sonner'
 export const metadata: Metadata = {
   title: {
     default: process.env.NEXT_PUBLIC_SITE_NAME ?? 'Photography',
-    template: `%s — ${process.env.NEXT_PUBLIC_SITE_NAME ?? 'Photography'}`,
+    template: `%s - ${process.env.NEXT_PUBLIC_SITE_NAME ?? 'Photography'}`,
   },
-  description: `Fine art photography by ${process.env.NEXT_PUBLIC_SITE_NAME ?? 'a photographer'}. Landscape, portrait, and documentary work.`,
+  description: `Fine art photography by Aiden. Landscape, Architecture, and Nature.`,
   openGraph: {
     type: 'website',
     siteName: process.env.NEXT_PUBLIC_SITE_NAME ?? 'Photography',

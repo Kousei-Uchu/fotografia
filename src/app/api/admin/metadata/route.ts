@@ -29,7 +29,7 @@ export async function PATCH(request: NextRequest) {
     if (photoId.startsWith('demo-')) {
       return NextResponse.json<ApiResponse<{ updated: boolean }>>({
         data: { updated: true },
-        message: 'Demo mode — no Drive update performed',
+        message: 'Demo mode, no Drive update performed',
       })
     }
 

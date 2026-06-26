@@ -128,7 +128,7 @@ export default function MetadataEditor({
             value={meta.category ?? ''}
             onChange={(e) => handleField('category', e.target.value || undefined)}
           >
-            <option value="">— None —</option>
+            <option value="">- None -</option>
             {allCategories.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -232,9 +232,9 @@ export default function MetadataEditor({
                   value={meta.heroAct ?? 1}
                   onChange={(e) => onUpdate({ heroAct: parseInt(e.target.value) as 1 | 2 | 3 })}
                 >
-                  <option value={1}>Act I — Opening</option>
-                  <option value={2}>Act II — Middle</option>
-                  <option value={3}>Act III — Close</option>
+                  <option value={1}>Act I - Growth</option>
+                  <option value={2}>Act II - Fall</option>
+                  <option value={3}>Act III - Remnants</option>
                 </select>
               </div>
               <div className="field-group">
@@ -407,7 +407,7 @@ function ExifField({ id, label, value, onChange, icon, type = 'text', placeholde
         type={type}
         className="field-input text-xs"
         value={value}
-        placeholder={placeholder ?? '—'}
+        placeholder={placeholder ?? '-'}
         onChange={(e) => onChange(e.target.value)}
         step={type === 'number' ? 'any' : undefined}
         min={type === 'number' ? 0 : undefined}

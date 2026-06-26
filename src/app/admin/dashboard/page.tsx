@@ -5,7 +5,7 @@ import { extractTags, extractCategories } from '@/lib/utils'
 import AdminDashboard from '@/components/admin/AdminDashboard'
 import type { Photo, DriveFolder, AdminStats } from '@/types'
 
-export const metadata: Metadata = { title: 'Dashboard — Admin' }
+export const metadata: Metadata = { title: 'Dashboard - Admin' }
 
 async function loadAdminData(): Promise<{
   photos: Photo[]

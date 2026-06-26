@@ -11,9 +11,9 @@ interface HeroGalleryProps {
 }
 
 const actMeta = {
-  1: { label: 'Act I', title: 'The Opening', description: 'First light. The world before it wakes.' },
-  2: { label: 'Act II', title: 'The Middle', description: 'Heat and motion. The world in full.' },
-  3: { label: 'Act III', title: 'The Close', description: 'Returning quiet. What remains.' },
+  1: { label: 'Act I', title: 'Growth', description: 'New life. The world awakening.' },
+  2: { label: 'Act II', title: 'Fall', description: "Approaching warm decay. The preparation of the world for it’s rest." },
+  3: { label: 'Act III', title: 'Dormant', description: 'Returning quiet. What remains.' },
 }
 
 export default function HeroGallery({ photos }: HeroGalleryProps) {

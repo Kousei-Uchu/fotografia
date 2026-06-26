@@ -1,4 +1,4 @@
-# Fotografia — Luxury Photography Portfolio
+# Fotografia, Luxury Photography Portfolio
 
 A high-performance photography website with a minimalist public gallery and a Lightroom-style admin backend. Built with Next.js 14 App Router, TypeScript, and Tailwind CSS.
 
@@ -15,7 +15,7 @@ A high-performance photography website with a minimalist public gallery and a Li
 - ISR (Incremental Static Regeneration) for performance
 
 **Admin Dashboard** (`/admin`)
-- Google Drive integration — photos live in Drive, metadata in `appProperties`
+- Google Drive integration: photos live in Drive, metadata in `appProperties`
 - Grid and list views
 - One-click hero assignment with act/order control
 - Full metadata editor: title, alt text, category, tags
@@ -116,7 +116,7 @@ The public homepage will show up to 30 hero images arranged by Act.
 - Each photo with GPS data has a 🔒 toggle in the inspector
 - When enabled, the location is stripped from all public views
 - The EXIF data (ISO, aperture, etc.) remains visible
-- This is per-image — you can share some locations but not others
+- This is per-image, you can share some locations but not others
 
 ### Missing Metadata Alerts
 The dashboard shows warnings when:

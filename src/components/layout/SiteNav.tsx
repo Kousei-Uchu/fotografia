@@ -26,7 +26,7 @@ export default function SiteNav() {
           href="/"
           className="display-italic text-ink text-lg tracking-tight hover:opacity-70 transition-opacity duration-300"
           style={{ fontFamily: 'Cormorant Garant, serif' }}
-          aria-label={`${siteName} — home`}
+          aria-label={`${siteName} - home`}
         >
           {siteName}
         </Link>

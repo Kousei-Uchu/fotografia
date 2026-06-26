@@ -373,7 +373,7 @@ function FolderTree({ folder, selectedId, onSelect, depth }: FolderTreeProps) {
   const hasChildren = (folder.children?.length ?? 0) > 0
 
   if (depth === 0) {
-    // Root — render children directly
+    // Root - render children directly
     return (
       <ul className="space-y-0.5" role="tree">
         {folder.children?.map((child) => (

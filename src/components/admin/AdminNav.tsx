@@ -17,7 +17,7 @@ export default function AdminNav() {
   async function clearCache() {
     try {
       await fetch('/api/admin/cache', { method: 'POST' })
-      toast.success('Cache cleared — next page load will re-fetch from Drive')
+      toast.success('Cache cleared, next page load will re-fetch from Drive')
     } catch {
       toast.error('Failed to clear cache')
     }

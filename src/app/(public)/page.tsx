@@ -77,13 +77,12 @@ export default async function HomePage() {
           className="display text-5xl md:text-7xl lg:text-8xl text-ink max-w-3xl"
           style={{ fontFamily: 'Cormorant Garant, serif' }}
         >
-          Light &amp;
+          Grow &amp;
           <br />
-          <em className="display-italic">Stillness</em>
+          <em className="display-italic">Fall</em>
         </h1>
         <p className="mt-6 text-sm text-secondary max-w-sm leading-relaxed">
-          A curated sequence of twenty-four photographs arranged in three acts
-          — each a moment suspended between intention and accident.
+          A sequence of photographs depicting the cycle of growth and decay in nature, exploring the beauty and impermanence of life.
         </p>
       </section>
 

@@ -1,6 +1,6 @@
 import AdminNav from '@/components/admin/AdminNav'
 
-// Auth is enforced by src/middleware.ts — no need to re-check here.
+// Auth is enforced by src/middleware.ts, no need to re-check here.
 export default function AdminLayout({
   children,
 }: {

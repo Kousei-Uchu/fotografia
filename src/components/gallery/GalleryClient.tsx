@@ -40,11 +40,12 @@ export default function GalleryClient({
 
   // Debounced search
   const debouncedSetSearch = useCallback(
-    debounce((val: string) => {
-      setFilters((f) => ({ ...f, search: val, page: 1 }))
-    }, 300),
+    debounce((val: unknown) => {
+      setFilters((f) => ({ ...f, search: String(val), page: 1 }))
+    }, 300) as (val: string) => void,
     []
   )
+
 
   const filtered = useMemo(
     () =>

@@ -16,7 +16,7 @@ export default function SiteNav() {
   const pathname = usePathname()
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 mix-blend-multiply">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-white via-white/70 via-60% to-transparent">
       <nav
         className="flex items-center justify-between px-6 md:px-10 py-5"
         aria-label="Main navigation"

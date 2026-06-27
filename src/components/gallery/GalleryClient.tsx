@@ -326,7 +326,6 @@ function GalleryCard({ photo, showExif, priority, onClick }: GalleryCardProps) {
       className="photo-card w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark"
       onClick={onClick}
       aria-label={`View: ${alt}`}
-      style={{ aspectRatio: photo.aspectRatio }}
     >
       <Image
         src={photo.thumbnailUrl}
@@ -335,7 +334,7 @@ function GalleryCard({ photo, showExif, priority, onClick }: GalleryCardProps) {
         height={photo.height}
         priority={priority}
         loading={priority ? 'eager' : 'lazy'}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />
       {showExif && (

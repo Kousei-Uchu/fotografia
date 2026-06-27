@@ -117,7 +117,6 @@ function PhotoTile({ photo, priority = false, onClick }: PhotoTileProps) {
       className="photo-card w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2"
       onClick={onClick}
       aria-label={`View: ${alt}`}
-      style={{ aspectRatio: photo.aspectRatio }}
     >
       <Image
         src={photo.thumbnailUrl}
@@ -126,7 +125,7 @@ function PhotoTile({ photo, priority = false, onClick }: PhotoTileProps) {
         height={photo.height}
         priority={priority}
         loading={priority ? 'eager' : 'lazy'}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />
       {/* Subtle hover overlay with exif hint */}

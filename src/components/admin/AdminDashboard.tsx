@@ -96,6 +96,7 @@ export default function AdminDashboard({
   const untagged = photos.filter((p) => !p.metadata.tags?.length).length
 
   return (
+<>
     <div className="flex h-[calc(100vh-56px)] overflow-hidden">
       {/* ── Left: Photo Grid Panel ──────────────── */}
       <div className="flex flex-col flex-1 min-w-0 border-r border-border overflow-hidden">
@@ -366,6 +367,7 @@ export default function AdminDashboard({
           }}
         />
       )}
+</>
   )
 }
 

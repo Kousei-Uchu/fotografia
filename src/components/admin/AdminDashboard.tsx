@@ -5,12 +5,13 @@ import Image from 'next/image'
 import {
   Search, Star, Eye, EyeOff, MapPin, MapPinOff,
   Tag, FolderOpen, ChevronRight, Save, X, Check,
-  AlertCircle, BarChart3, Image as ImageIcon, Layers
+  AlertCircle, BarChart3, Image as ImageIcon, Layers, Share2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, filterPhotos } from '@/lib/utils'
 import { formatAperture, formatISO, formatFocalLength } from '@/lib/drive'
 import MetadataEditor from './MetadataEditor'
+import ShareManager from './ShareManager'
 import type { Photo, DriveFolder, AdminStats, ImageMetadata } from '@/types'
 
 interface AdminDashboardProps {
@@ -38,6 +39,7 @@ export default function AdminDashboard({
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [saving, setSaving] = useState<string | null>(null)
+  const [showShareManager, setShowShareManager] = useState(false)
   const [sidebarTab, setSidebarTab] = useState<'metadata' | 'folders' | 'stats'>('metadata')
 
   const filtered = useMemo(
@@ -70,7 +72,7 @@ export default function AdminDashboard({
       toast.success('Metadata saved')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to save, check console')
+      toast.error('Failed to save — check console')
     } finally {
       setSaving(null)
     }
@@ -134,6 +136,18 @@ export default function AdminDashboard({
               </button>
             ))}
           </div>
+
+          {/* Share selected */}
+          {selected.length > 0 && (
+            <button
+              onClick={() => setShowShareManager(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/20 border border-gold text-ink text-xs hover:bg-gold/30 transition-colors flex-shrink-0"
+              aria-label={`Share ${selected.length} selected photos`}
+            >
+              <Share2 size={13} />
+              Share {selected.length} photo{selected.length !== 1 ? 's' : ''}
+            </button>
+          )}
 
           {/* View toggle */}
           <div className="flex border border-border rounded ml-auto flex-shrink-0">
@@ -233,7 +247,7 @@ export default function AdminDashboard({
                     </td>
                     <td className="px-4 py-2">
                       <span className="text-2xs border border-border px-2 py-0.5 rounded-full text-muted">
-                        {photo.metadata.category ?? '-'}
+                        {photo.metadata.category ?? '—'}
                       </span>
                     </td>
                     <td className="px-4 py-2">
@@ -260,7 +274,7 @@ export default function AdminDashboard({
                           <MapPin size={13} className="text-green-600" />
                         )
                       ) : (
-                        <span className="text-border">-</span>
+                        <span className="text-border">—</span>
                       )}
                     </td>
                   </tr>
@@ -340,6 +354,18 @@ export default function AdminDashboard({
         </div>
       </aside>
     </div>
+
+      {/* Share Manager modal */}
+      {showShareManager && (
+        <ShareManager
+          selectedPhotos={photos.filter((p) => selected.includes(p.id))}
+          onClose={() => setShowShareManager(false)}
+          onClearSelection={() => {
+            setSelected([])
+            setShowShareManager(false)
+          }}
+        />
+      )}
   )
 }
 
@@ -415,7 +441,7 @@ function AdminPhotoCard({
             className="absolute bottom-1.5 right-1.5"
             onClick={(e) => { e.stopPropagation(); onToggleLocation() }}
             aria-label={photo.metadata.locationPrivate ? 'Show location' : 'Hide location'}
-            title={photo.metadata.locationPrivate ? 'Location hidden, click to reveal' : 'Location visible, click to hide'}
+            title={photo.metadata.locationPrivate ? 'Location hidden — click to reveal' : 'Location visible — click to hide'}
           >
             {photo.metadata.locationPrivate ? (
               <MapPinOff size={12} className="text-red-400" />

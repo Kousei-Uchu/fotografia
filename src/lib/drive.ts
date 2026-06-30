@@ -216,7 +216,7 @@ export function driveFileToPhoto(
 // ─── URL Builders ─────────────────────────────────────────────────────────────
 
 export function buildThumbnailUrl(fileId: string, size: number) {
-  return `/api/images/${fileId}?size${size}`
+  return `/api/images/${fileId}?size=${size}`
 }
 
 export function buildDirectUrl(fileId: string) {

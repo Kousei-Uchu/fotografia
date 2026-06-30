@@ -328,7 +328,7 @@ export default function VerifyPage() {
             <li><strong className="text-ink">QIM embedding</strong> — a mid-frequency coefficient in each block is shifted by ≤ {DELTA / 2} units to encode one watermark bit. The shift is below the just-noticeable-difference (JND) threshold for photographic content.</li>
             <li><strong className="text-ink">Repetition coding</strong> — each bit is embedded into {R_REPS} independent blocks. Detection uses majority voting across all copies, providing robustness against partial image loss.</li>
           </ol>
-          <p className="text-xs text-muted">Reference: Bhatnagar & Jonathan Wu, "Biometrics inspired watermarking based on a fractional dual tree complex wavelet transform", Future Generation Computer Systems, 2012.</p>
+          <p className="text-xs text-muted">Reference: Bhatnagar & Jonathan Wu, &rdquo;Biometrics inspired watermarking based on a fractional dual tree complex wavelet transform&rdquo;, Future Generation Computer Systems, 2012.</p>
         </div>
       </details>
     </div>

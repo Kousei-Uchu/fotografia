@@ -10,16 +10,16 @@ export function cn(...inputs: ClassValue[]) {
 //
 // Algorithm overview:
 //
-//   Phase 1 — Greedy O(n): For all photos except the last LOOKAHEAD_SIZE,
+//   Phase 1 - Greedy O(n): For all photos except the last LOOKAHEAD_SIZE,
 //   assign each image to whichever column is currently shortest. This is the
 //   standard Pinterest/Unsplash approach and runs in O(n · C) where C is the
 //   (small, fixed) column count.
 //
-//   Phase 2 — Look-ahead optimisation: For the final LOOKAHEAD_SIZE images,
+//   Phase 2 - Look-ahead optimisation: For the final LOOKAHEAD_SIZE images,
 //   enumerate every possible assignment permutation and pick the one that
-//   minimises (maxHeight − minHeight) across all columns — i.e. the flattest
+//   minimises (maxHeight − minHeight) across all columns - i.e. the flattest
 //   possible ending. Permutation count is C^k where k ≤ LOOKAHEAD_SIZE and
-//   C ≤ ~5, so this is at most 5^5 = 3,125 iterations — effectively O(1).
+//   C ≤ ~5, so this is at most 5^5 = 3,125 iterations - effectively O(1).
 //
 //   Tie-breaking: When two permutations are equally balanced, prefer the one
 //   that places the last image in the centre column (or whichever column is
@@ -34,7 +34,7 @@ const LOOKAHEAD_SIZE = 5
  * GAP approximates the CSS row-gap between images so tall portrait stacks
  * aren't underweighted relative to landscape stacks.
  */
-const GAP = 0.04 // ~4% of column width — mirrors the 6px gap at ~150px col width
+const GAP = 0.04 // ~4% of column width - mirrors the 6px gap at ~150px col width
 
 function imageHeight(photo: Photo): number {
   return 1 / photo.aspectRatio + GAP
@@ -149,12 +149,12 @@ function optimiseTail(
     const s = spread(sim)
 
     if (s < bestSpread - 1e-9) {
-      // Strictly better balance — adopt unconditionally
+      // Strictly better balance - adopt unconditionally
       bestSpread = s
       bestAssignment = assignment
       bestTiebreak = tiebreakScore(baseHeights, assignment, tailPhotos)
     } else if (s < bestSpread + 1e-9) {
-      // Tied on spread — apply visual tie-break
+      // Tied on spread - apply visual tie-break
       const tb = tiebreakScore(baseHeights, assignment, tailPhotos)
       if (tb < bestTiebreak - 1e-12) {
         bestTiebreak = tb
@@ -198,7 +198,7 @@ export function buildMasonryColumns(
   // ── Phase 1: Greedy insertion for photos[0 .. cutoff) ─────────────────────
   //
   // When there are fewer photos than LOOKAHEAD_SIZE (tiny galleries),
-  // cutoff = 0 so Phase 2 handles everything — still fast because
+  // cutoff = 0 so Phase 2 handles everything - still fast because
   // total permutations remain tiny (≤ columnCount^LOOKAHEAD_SIZE).
   const lookahead = Math.min(LOOKAHEAD_SIZE, photos.length)
   const cutoff = photos.length - lookahead
@@ -250,7 +250,7 @@ export function generateAltText(photo: Photo): string {
   // Aim for 60–90 characters
   const text = parts.join('. ')
   if (text.length < 60) {
-    return `${text} — fine art photography`
+    return `${text} - fine art photography`
   }
   return text.slice(0, 90)
 }

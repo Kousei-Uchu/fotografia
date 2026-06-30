@@ -100,7 +100,7 @@ export default function ShareManager({ selectedPhotos, onClose, onClearSelection
 
               <div className="field-group">
                 <label className="field-label" htmlFor="share-label">Gallery title <span className="normal-case font-normal text-muted/70">(shown to recipient)</span></label>
-                <input id="share-label" type="text" className="field-input" placeholder="e.g. Wedding Preview — Smith & Jones" maxLength={120} value={label} onChange={e => setLabel(e.target.value)} />
+                <input id="share-label" type="text" className="field-input" placeholder="e.g. Wedding Preview - Smith & Jones" maxLength={120} value={label} onChange={e => setLabel(e.target.value)} />
               </div>
 
               <div className="field-group">

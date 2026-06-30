@@ -1,5 +1,5 @@
 /**
- * /s/[token] — Public share gallery page.
+ * /s/[token] - Public share gallery page.
  * Verifies the HMAC token server-side, fetches Drive metadata for each photo,
  * renders ShareGallery. Dynamic (force-dynamic) so expiry is checked on every request.
  */
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const meta = shareMetaFromPayload(result.payload)
   const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? 'Photography'
   return {
-    title: meta.label ?? `Shared Gallery — ${siteName}`,
+    title: meta.label ?? `Shared Gallery - ${siteName}`,
     description: meta.note ?? `${meta.photoCount} photographs shared privately via ${siteName}.`,
     robots: { index: false, follow: false },
   }

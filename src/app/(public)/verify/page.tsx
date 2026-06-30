@@ -1,5 +1,5 @@
 /**
- * /verify — Client-side watermark detection.
+ * /verify - Client-side watermark detection.
  * Drag-and-drop an image; DWT-DCT-QIM detection runs entirely in the browser
  * via Canvas pixel extraction. Nothing is uploaded to a server.
  */
@@ -201,9 +201,8 @@ export default function VerifyPage() {
           Verify Ownership
         </h1>
         <p className="text-sm text-secondary leading-relaxed max-w-prose">
-          Every image served from this site carries an invisible DWT-DCT frequency-domain watermark.
-          Upload any suspected copy — even after JPEG re-compression, colour grading, or mild cropping —
-          to confirm whether it originated here.
+          Every image served from this site carries an invisible watermark.
+          Upload any suspected copy, to confirm whether it originated here.
         </p>
         <p className="text-xs text-muted mt-3">Detection runs entirely in your browser. Nothing is uploaded to a server.</p>
       </div>
@@ -242,8 +241,8 @@ export default function VerifyPage() {
             <div className="flex items-center gap-3 py-4">
               <Loader2 size={18} className="animate-spin text-gold-dark flex-shrink-0" />
               <div>
-                <p className="text-sm text-ink font-medium">Analysing frequency domain…</p>
-                <p className="text-xs text-muted mt-0.5">Running Haar DWT → 8×8 DCT → QIM decode across all blocks</p>
+                <p className="text-sm text-ink font-medium">Analysing Image…</p>
+                <p className="text-xs text-muted mt-0.5">This may take a few moments.</p>
               </div>
             </div>
           )}
@@ -263,12 +262,12 @@ export default function VerifyPage() {
                   : <ShieldX size={22} className="text-red-500 flex-shrink-0 mt-0.5" />}
                 <div>
                   <p className={cn('font-medium text-base', result.detected ? 'text-green-800' : 'text-red-800')}>
-                    {result.detected ? 'Watermark detected — this image originated here' : 'No watermark found'}
+                    {result.detected ? 'Watermark detected' : 'No watermark found'}
                   </p>
                   <p className={cn('text-xs mt-1', result.detected ? 'text-green-700' : 'text-red-600')}>
                     {result.detected
-                      ? 'The invisible DWT-DCT signature is present and readable.'
-                      : 'Either the image was not served from this site, or it has been too heavily modified (cropped >50%, heavily filtered, or down-scaled below ~226 × 226 px).'}
+                      ? 'The image originated from this site.'
+                      : 'The image does not appear to have originated from this site, or has been heavily modified.'}
                   </p>
                 </div>
               </div>
@@ -286,51 +285,57 @@ export default function VerifyPage() {
                     style={{ width: `${confidencePct}%` }}
                   />
                 </div>
-                <p className="text-2xs text-secondary/70 mt-1.5">
-                  Based on majority vote across {result.blocksUsed} DCT blocks · ≥ 82% = confirmed · ≥ 90% = high confidence
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-secondary font-medium mb-1.5">Decoded payload</p>
-                <div className="flex items-center gap-2 bg-white/60 border border-black/10 rounded px-3 py-2">
-                  <code className="text-xs text-ink flex-1 break-all font-mono">
-                    {result.text || <span className="text-muted italic">empty</span>}
-                  </code>
-                  {result.text && (
-                    <button onClick={() => copyText(result.text)} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
-                      {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
-                    </button>
-                  )}
-                </div>
-                {result.detected && (
-                  <p className="text-2xs text-green-700 mt-1.5">
-                    ✓ Matches expected signature: <span className="font-mono">{WATERMARK_TEXT}</span>
+                {false && (
+                  <p className="text-2xs text-secondary/70 mt-1.5">
+                    Based on majority vote across {result.blocksUsed} DCT blocks · ≥ 82% = confirmed · ≥ 90% = high confidence
                   </p>
                 )}
               </div>
+
+              {false && (
+                <div>
+                  <p className="text-xs text-secondary font-medium mb-1.5">Decoded payload</p>
+                  <div className="flex items-center gap-2 bg-white/60 border border-black/10 rounded px-3 py-2">
+                    <code className="text-xs text-ink flex-1 break-all font-mono">
+                      {result.text || <span className="text-muted italic">empty</span>}
+                    </code>
+                    {result.text && (
+                      <button onClick={() => copyText(result.text)} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
+                        {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+                      </button>
+                    )}
+                  </div>
+                  {result.detected && (
+                    <p className="text-2xs text-green-700 mt-1.5">
+                      ✓ Matches expected signature.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      <details className="mt-12 group">
-        <summary className="flex items-center gap-2 cursor-pointer label text-muted hover:text-secondary transition-colors list-none">
-          <Info size={11} />
-          How the watermark works
-          <span className="ml-auto text-muted group-open:rotate-180 transition-transform">▾</span>
-        </summary>
-        <div className="mt-4 space-y-3 text-sm text-secondary leading-relaxed border-l-2 border-border pl-4">
-          <p>Each image served from this site passes through a frequency-domain embedding pipeline before delivery. The process is invisible to the human eye but mathematically recoverable.</p>
-          <ol className="space-y-2 list-decimal list-inside text-sm marker:text-muted">
-            <li><strong className="text-ink">Haar DWT</strong> — the image luma channel is decomposed into four frequency sub-bands. The low-frequency LL sub-band carries most of the image energy and is highly resistant to compression.</li>
-            <li><strong className="text-ink">8×8 DCT-II</strong> — the LL sub-band is split into non-overlapping 8 × 8 blocks and each is transformed into the frequency domain, mirroring the JPEG codec internally.</li>
-            <li><strong className="text-ink">QIM embedding</strong> — a mid-frequency coefficient in each block is shifted by ≤ {DELTA / 2} units to encode one watermark bit. The shift is below the just-noticeable-difference (JND) threshold for photographic content.</li>
-            <li><strong className="text-ink">Repetition coding</strong> — each bit is embedded into {R_REPS} independent blocks. Detection uses majority voting across all copies, providing robustness against partial image loss.</li>
-          </ol>
-          <p className="text-xs text-muted">Reference: Bhatnagar & Jonathan Wu, &rdquo;Biometrics inspired watermarking based on a fractional dual tree complex wavelet transform&rdquo;, Future Generation Computer Systems, 2012.</p>
-        </div>
-      </details>
+      {false && (
+        <details className="mt-12 group">
+          <summary className="flex items-center gap-2 cursor-pointer label text-muted hover:text-secondary transition-colors list-none">
+            <Info size={11} />
+            How the watermark works
+            <span className="ml-auto text-muted group-open:rotate-180 transition-transform">▾</span>
+          </summary>
+          <div className="mt-4 space-y-3 text-sm text-secondary leading-relaxed border-l-2 border-border pl-4">
+            <p>Each image served from this site passes through a frequency-domain embedding pipeline before delivery. The process is invisible to the human eye but mathematically recoverable.</p>
+            <ol className="space-y-2 list-decimal list-inside text-sm marker:text-muted">
+              <li><strong className="text-ink">Haar DWT</strong> - the image luma channel is decomposed into four frequency sub-bands. The low-frequency LL sub-band carries most of the image energy and is highly resistant to compression.</li>
+              <li><strong className="text-ink">8×8 DCT-II</strong> - the LL sub-band is split into non-overlapping 8 × 8 blocks and each is transformed into the frequency domain, mirroring the JPEG codec internally.</li>
+              <li><strong className="text-ink">QIM embedding</strong> - a mid-frequency coefficient in each block is shifted by ≤ {DELTA / 2} units to encode one watermark bit. The shift is below the just-noticeable-difference (JND) threshold for photographic content.</li>
+              <li><strong className="text-ink">Repetition coding</strong> - each bit is embedded into {R_REPS} independent blocks. Detection uses majority voting across all copies, providing robustness against partial image loss.</li>
+            </ol>
+            <p className="text-xs text-muted">Reference: Bhatnagar & Jonathan Wu, &rdquo;Biometrics inspired watermarking based on a fractional dual tree complex wavelet transform&rdquo;, Future Generation Computer Systems, 2012.</p>
+          </div>
+        </details>
+      )}
     </div>
   )
 }

@@ -72,7 +72,7 @@ export default function AdminDashboard({
       toast.success('Metadata saved')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to save — check console')
+      toast.error('Failed to save. Please check the console.')
     } finally {
       setSaving(null)
     }
@@ -248,7 +248,7 @@ export default function AdminDashboard({
                     </td>
                     <td className="px-4 py-2">
                       <span className="text-2xs border border-border px-2 py-0.5 rounded-full text-muted">
-                        {photo.metadata.category ?? '—'}
+                        {photo.metadata.category ?? '-'}
                       </span>
                     </td>
                     <td className="px-4 py-2">
@@ -275,7 +275,7 @@ export default function AdminDashboard({
                           <MapPin size={13} className="text-green-600" />
                         )
                       ) : (
-                        <span className="text-border">—</span>
+                        <span className="text-border">-</span>
                       )}
                     </td>
                   </tr>
@@ -443,7 +443,7 @@ function AdminPhotoCard({
             className="absolute bottom-1.5 right-1.5"
             onClick={(e) => { e.stopPropagation(); onToggleLocation() }}
             aria-label={photo.metadata.locationPrivate ? 'Show location' : 'Hide location'}
-            title={photo.metadata.locationPrivate ? 'Location hidden — click to reveal' : 'Location visible — click to hide'}
+            title={photo.metadata.locationPrivate ? 'Location hidden. Click to reveal' : 'Location visible. Click to hide'}
           >
             {photo.metadata.locationPrivate ? (
               <MapPinOff size={12} className="text-red-400" />

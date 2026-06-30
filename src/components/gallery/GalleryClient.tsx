@@ -11,6 +11,7 @@ import {
 } from '@/lib/photoFormatting'
 import PhotoLightbox from './PhotoLightbox'
 import type { Photo, DriveFolder, FilterState } from '@/types'
+import { useInView } from 'react-intersection-observer';
 
 interface GalleryClientProps {
   photos: Photo[]
@@ -87,6 +88,19 @@ export default function GalleryClient({
   function clearFilters() {
     setFilters({ search: '', tags: [], category: null, folderId: null, page: 1 })
   }
+
+  // 'ref' attaches to the element, 'inView' is a boolean tracking visibility
+  const { ref, inView } = useInView({
+    threshold: 0.2,      // Triggers when 20% of the element is visible
+    triggerOnce: true,   // Set to true if you only want to trigger it once
+  });
+
+  useEffect(() => {
+    if (inView) {
+      console.log('Loading more photos due to infinite scroll trigger');
+      setFilters((f) => ({ ...f, page: f.page + 1 }));
+    }
+  }, [inView]);
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -287,6 +301,7 @@ export default function GalleryClient({
             {paginated.length < filtered.length && (
               <div className="flex justify-center py-10">
                 <button
+                  ref={ref}  // Attach the ref for intersection observer
                   onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}
                   className="px-8 py-3 border border-border text-sm text-secondary hover:border-ink hover:text-ink transition-colors"
                 >

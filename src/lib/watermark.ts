@@ -1,5 +1,5 @@
 /**
- * watermark.ts — Blind DWT-DCT Steganographic Watermarking
+ * watermark.ts - Blind DWT-DCT Steganographic Watermarking
  *
  * ─── Algorithm overview ────────────────────────────────────────────────────
  *
@@ -65,7 +65,7 @@ const DELTA = 28
  */
 const R_REPS = 8
 
-/** DCT block size (must be 8 — matches JPEG internal block). */
+/** DCT block size (must be 8 - matches JPEG internal block). */
 const BLOCK = 8
 
 /** QIM encode: return nearest even/odd multiple of DELTA. */
@@ -236,7 +236,7 @@ function bitsToText(bits: number[]): string {
   return out
 }
 
-// Mid-frequency coefficient position — robust to JPEG quantisation
+// Mid-frequency coefficient position - robust to JPEG quantisation
 const MID_ROW = 3
 const MID_COL = 4
 

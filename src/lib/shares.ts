@@ -1,11 +1,11 @@
 /**
- * shares.ts — Stateless signed share-token system
+ * shares.ts - Stateless signed share-token system
  *
  * token = base64url( JSON payload ) + "." + base64url( HMAC-SHA256 signature )
  *
  * Payload: { v:1, ids:string[], label?, note?, exp?, iat }
  *
- * Env required: SHARE_SECRET (≥32 bytes) — generate with: openssl rand -hex 32
+ * Env required: SHARE_SECRET (≥32 bytes) - generate with: openssl rand -hex 32
  */
 
 import { createHmac, timingSafeEqual } from 'crypto'
@@ -147,7 +147,7 @@ export function shareErrorMessage(error: ShareError): string {
     case 'INVALID_FORMAT':    return 'This share link is malformed or incomplete.'
     case 'INVALID_SIGNATURE': return 'This share link has been tampered with and cannot be trusted.'
     case 'EXPIRED':           return 'This share link has expired.'
-    case 'MISSING_SECRET':    return 'Server configuration error — please contact the site owner.'
+    case 'MISSING_SECRET':    return 'Server configuration error. Please contact the site owner.'
     case 'TOO_MANY_IDS':      return 'This share link references too many images.'
     case 'EMPTY_IDS':         return 'This share link contains no images.'
   }

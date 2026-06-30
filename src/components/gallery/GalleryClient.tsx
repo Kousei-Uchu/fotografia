@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import { Search, X, ChevronDown, ChevronRight, Filter, Eye, EyeOff } from 'lucide-react'
 import { cn, filterPhotos, buildMasonryColumns, generateAltText, debounce } from '@/lib/utils'

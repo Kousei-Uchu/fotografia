@@ -215,12 +215,12 @@ export function driveFileToPhoto(
 
 // ─── URL Builders ─────────────────────────────────────────────────────────────
 
-export function buildThumbnailUrl(fileId: string, size: number): string {
-  return `https://lh3.googleusercontent.com/d/${fileId}=s${size}`
+export function buildThumbnailUrl(fileId: string, size: number) {
+  return `/api/images/${fileId}?size${size}`
 }
 
-export function buildDirectUrl(fileId: string): string {
-  return `https://drive.google.com/uc?export=view&id=${fileId}`
+export function buildDirectUrl(fileId: string) {
+  return `/api/images/${fileId}`
 }
 
 // ─── Formatters ───────────────────────────────────────────────────────────────

@@ -19,9 +19,9 @@ export function formatShutterSpeed(exposureTime: number): string {
 }
 
 export function buildThumbnailUrl(fileId: string, size: number) {
-  return `https://lh3.googleusercontent.com/d/${fileId}=s${size}`
+  return `/api/images/${fileId}?size${size}`
 }
 
 export function buildDirectUrl(fileId: string) {
-  return `https://drive.google.com/uc?export=view&id=${fileId}`
+  return `/api/images/${fileId}`
 }

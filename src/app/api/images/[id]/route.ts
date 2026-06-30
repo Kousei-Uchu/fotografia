@@ -11,8 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { embedWatermark } from '@/lib/watermark'
 
-const MAX_SIZE = 3000
-const DEFAULT_SIZE = 0
+const MAX_SIZE = 16383
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -28,11 +27,19 @@ export async function GET(
   }
 
   const { searchParams } = new URL(request.url)
-  const rawSize = parseInt(searchParams.get('size') ?? String(DEFAULT_SIZE), 10)
-  const size = Math.min((rawSize || DEFAULT_SIZE), MAX_SIZE)
-  const fmt = searchParams.get('fmt') === 'jpeg' ? 'jpeg' : 'webp'
 
-  const sourceUrl = `https://lh3.googleusercontent.com/d/${fileId}=s${size}`
+  // If size param exists, parse and clamp it. If not, default to 0 (Original)
+  const hasSizeParam = searchParams.get('size') !== null
+  const rawSize = parseInt(searchParams.get('size') || '0', 10)
+  
+  // If parsing fails (NaN), fallback safely to 0 (Original Max Size)
+  const size = (hasSizeParam && !isNaN(rawSize)) 
+    ? Math.min(Math.max(rawSize, 64), MAX_SIZE) 
+    : 0
+  const fmt = searchParams.get('fmt') === 'jpeg' ? 'jpeg' : 'webp'
+  
+  // Fetch =s0 for max size if no size parameter was requested
+  const sourceUrl = `https://lh3.googleusercontent.com/d/${fileId}${size === 0 ? '=s0' : `=s${size}`}`
 
   let sourceBuffer: ArrayBuffer
   try {
@@ -54,9 +61,14 @@ export async function GET(
   let imgWidth: number
   let imgHeight: number
   try {
-    const img = sharp(Buffer.from(sourceBuffer))
-      .resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
-      .removeAlpha()
+    let img = sharp(Buffer.from(sourceBuffer))
+
+    // Only downscale if the user explicitly requested a specific size
+    if (size > 0) {
+      img = img.resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
+    }
+    
+    img = img.removeAlpha()
     const { data, info } = await img.raw().toBuffer({ resolveWithObject: true })
     rawPixels = data
     imgWidth = info.width

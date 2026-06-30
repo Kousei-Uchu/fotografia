@@ -11,6 +11,10 @@ import { Upload, ShieldCheck, ShieldX, Loader2, Info, Copy, Check } from 'lucide
 import { cn } from '@/lib/utils'
 
 // ─── Client-side detector (mirrors lib/watermark.ts) ─────────────────────────
+// IMPORTANT: this must stay byte-for-byte in sync with the block-assignment
+// logic in lib/watermark.ts (DELTA, R_REPS, BLOCK, MID_ROW/COL, and the
+// SHUFFLE_SEED + seededShuffle permutation). If that file's shuffle ever
+// changes, this copy needs the same change or detection will silently fail.
 
 const WATERMARK_TEXT = 'morebi.vercel.app - \u00A92026 Aiden - hello@sorren.me'
 const DELTA = 28
@@ -19,6 +23,31 @@ const BLOCK = 8
 const MID_ROW = 3
 const MID_COL = 4
 const N_DCT = 8
+
+// Must match SHUFFLE_SEED in lib/watermark.ts exactly - this is what lets
+// detection figure out which physical block carries which payload bit,
+// since blocks are no longer visited in simple raster order.
+const SHUFFLE_SEED = 0x5eed1234
+
+function seededShuffle(n: number, seed: number): Int32Array {
+  const idx = new Int32Array(n)
+  for (let i = 0; i < n; i++) idx[i] = i
+  let s = seed >>> 0
+  const rnd = () => {
+    s ^= s << 13
+    s ^= s >>> 17
+    s ^= s << 5
+    s >>>= 0
+    return s / 4294967296
+  }
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1))
+    const tmp = idx[i]
+    idx[i] = idx[j]
+    idx[j] = tmp
+  }
+  return idx
+}
 
 const DCT_MATRIX: number[][] = Array.from({ length: N_DCT }, (_, k) =>
   Array.from({ length: N_DCT }, (__, n) => {
@@ -96,15 +125,20 @@ function detectWatermarkClient(imageData: ImageData): DetectionResult {
   const bCols = Math.floor(llCols / BLOCK)
   const totalBlocks = bRows * bCols
 
+  // Replay the exact same shuffle used at embed time (lib/watermark.ts) so
+  // each vote lands on the payload bit it was actually written to.
+  const order = seededShuffle(totalBlocks, SHUFFLE_SEED)
+
   const votes = new Int32Array(payloadBits)
   const counts = new Int32Array(payloadBits)
-  let blockIdx = 0
+  let k = 0
 
   outer: for (let rep = 0; rep < R_REPS; rep++) {
     for (let bi = 0; bi < payloadBits; bi++) {
-      if (blockIdx >= totalBlocks) break outer
-      const br = Math.floor(blockIdx / bCols), bc = blockIdx % bCols
-      blockIdx++
+      if (k >= totalBlocks) break outer
+      const pos = order[k]
+      const br = Math.floor(pos / bCols), bc = pos % bCols
+      k++
       const block = new Float64Array(BLOCK * BLOCK)
       for (let r = 0; r < BLOCK; r++)
         for (let c = 0; c < BLOCK; c++)
@@ -131,7 +165,7 @@ function detectWatermarkClient(imageData: ImageData): DetectionResult {
     detected: decoded === WATERMARK_TEXT || (confidence >= 0.82 && decoded.length >= WATERMARK_TEXT.length * 0.8),
     text: decoded,
     confidence,
-    blocksUsed: Math.min(blockIdx, totalBlocks),
+    blocksUsed: Math.min(k, totalBlocks),
   }
 }
 

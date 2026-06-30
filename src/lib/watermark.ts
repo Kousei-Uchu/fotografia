@@ -23,6 +23,9 @@
  *   5. Apply inverse DCT to each block, then inverse DWT to reconstruct the
  *      full luma plane; merge back into the RGB image.
  *
+ *   Bit→block assignment is NOT sequential/raster order - see "Block
+ *   assignment shuffle" below for why, and why it matters for visibility.
+ *
  * Decoding (detect):
  *   1. Repeat steps 1–3 on the (possibly re-compressed / resized) image.
  *   2. For each block, read the mid-frequency coefficient and decide bit=1 if
@@ -31,6 +34,25 @@
  *      (repetition coding with rate 1/R_REPS), then decode ASCII.
  *   4. Compute a confidence score (fraction of votes that agreed with the
  *      majority) and return alongside the decoded string.
+ *
+ * ─── Block assignment shuffle (checkerboard fix) ──────────────────────────
+ *
+ * Originally, payload bits were written into blocks in simple raster order
+ * (block 0 = bit 0, block 1 = bit 1, ...). ASCII bytes flip bit parity very
+ * frequently (e.g. 'm' = 01101101), so spatially adjacent blocks routinely
+ * received opposite bits, pushing their QIM coefficient up vs. down on a
+ * perfectly periodic spatial grid. The human visual system is far more
+ * sensitive to periodic structure than to equivalent-energy random noise,
+ * so this read as a visible checkerboard - worse at low resolution, where
+ * each 16×16-pixel (8×8 LL-space) block covers a much larger fraction of
+ * the visible image.
+ *
+ * Fix: block indices are passed through a deterministic seeded shuffle
+ * before being used as DCT-block coordinates. This decorrelates bit parity
+ * from spatial position - same total embedding energy, but it now reads as
+ * noise instead of a grid. The seed is fixed and shared between embed and
+ * detect, since detection has to replay the exact same permutation to know
+ * which physical block carries which payload bit.
  *
  * ─── Robustness properties ────────────────────────────────────────────────
  *
@@ -67,6 +89,40 @@ const R_REPS = 8
 
 /** DCT block size (must be 8 - matches JPEG internal block). */
 const BLOCK = 8
+
+/**
+ * Deterministic seed for the block-assignment shuffle. Must stay identical
+ * between embed and detect (and never change once images are watermarked
+ * in production) since detection replays the same shuffle to figure out
+ * which physical block carries which payload bit.
+ */
+const SHUFFLE_SEED = 0x5eed1234
+
+/**
+ * Deterministic xorshift32-based Fisher-Yates shuffle. Produces a fixed
+ * permutation of [0, n) given a fixed seed, with no external RNG state -
+ * needed so embed and detect (which may run in entirely separate processes/
+ * requests) compute the exact same block order.
+ */
+function seededShuffle(n: number, seed: number): Int32Array {
+  const idx = new Int32Array(n)
+  for (let i = 0; i < n; i++) idx[i] = i
+  let s = seed >>> 0
+  const rnd = () => {
+    s ^= s << 13
+    s ^= s >>> 17
+    s ^= s << 5
+    s >>>= 0
+    return s / 4294967296
+  }
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1))
+    const tmp = idx[i]
+    idx[i] = idx[j]
+    idx[j] = tmp
+  }
+  return idx
+}
 
 /** QIM encode: return nearest even/odd multiple of DELTA. */
 function qimEncode(coeff: number, bit: number): number {
@@ -297,15 +353,20 @@ export function embedWatermark(
     console.warn(`[watermark] Only ${totalBlocks} blocks available for ${totalBitsNeeded} needed. Robustness reduced.`)
   }
 
-  let blockIdx = 0
+  // Shuffle the block visitation order so spatially adjacent blocks don't
+  // systematically receive opposite-parity bits (see "Block assignment
+  // shuffle" in the header comment) - this is what prevents the checkerboard.
+  const order = seededShuffle(totalBlocks, SHUFFLE_SEED)
+  let k = 0
   const modifiedLL = new Float64Array(LL)
 
   outer: for (let rep = 0; rep < R_REPS; rep++) {
     for (let bi = 0; bi < bits.length; bi++) {
-      if (blockIdx >= totalBlocks) break outer
-      const br = Math.floor(blockIdx / bCols)
-      const bc = blockIdx % bCols
-      blockIdx++
+      if (k >= totalBlocks) break outer
+      const pos = order[k]
+      const br = Math.floor(pos / bCols)
+      const bc = pos % bCols
+      k++
 
       const block = new Float64Array(BLOCK * BLOCK)
       for (let r = 0; r < BLOCK; r++)
@@ -368,16 +429,21 @@ export function detectWatermark(
   const bCols = Math.floor(llCols / BLOCK)
   const totalBlocks = bRows * bCols
 
+  // Must replay the exact same shuffle used at embed time so each decoded
+  // vote lands on the payload bit it was actually written to.
+  const order = seededShuffle(totalBlocks, SHUFFLE_SEED)
+
   const votes = new Int32Array(payloadBits)
   const counts = new Int32Array(payloadBits)
 
-  let blockIdx = 0
+  let k = 0
   outer: for (let rep = 0; rep < R_REPS; rep++) {
     for (let bi = 0; bi < payloadBits; bi++) {
-      if (blockIdx >= totalBlocks) break outer
-      const br = Math.floor(blockIdx / bCols)
-      const bc = blockIdx % bCols
-      blockIdx++
+      if (k >= totalBlocks) break outer
+      const pos = order[k]
+      const br = Math.floor(pos / bCols)
+      const bc = pos % bCols
+      k++
 
       const block = new Float64Array(BLOCK * BLOCK)
       for (let r = 0; r < BLOCK; r++)
@@ -412,6 +478,6 @@ export function detectWatermark(
     detected: exactMatch || (highConfidence && decoded.length >= WATERMARK_TEXT.length * 0.8),
     text: decoded,
     confidence,
-    blocksUsed: Math.min(blockIdx, totalBlocks),
+    blocksUsed: Math.min(k, totalBlocks),
   }
 }

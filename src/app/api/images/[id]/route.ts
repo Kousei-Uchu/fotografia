@@ -92,7 +92,7 @@ export async function GET(
     return new NextResponse('Failed to encode output image', { status: 500 })
   }
 
-  return new NextResponse(outputBuffer, {
+  return new NextResponse(new Uint8Array(outputBuffer), {
     status: 200,
     headers: {
       'Content-Type': contentType,

@@ -297,10 +297,10 @@ export default function VerifyPage() {
                   <p className="text-xs text-secondary font-medium mb-1.5">Decoded payload</p>
                   <div className="flex items-center gap-2 bg-white/60 border border-black/10 rounded px-3 py-2">
                     <code className="text-xs text-ink flex-1 break-all font-mono">
-                      {result.text || <span className="text-muted italic">empty</span>}
+                      {result!.text || <span className="text-muted italic">empty</span>}
                     </code>
-                    {result.text && (
-                      <button onClick={() => copyText(result.text)} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
+                    {result!.text && (
+                      <button onClick={() => copyText(result!.text)} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
                         {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
                       </button>
                     )}

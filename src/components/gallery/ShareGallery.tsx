@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, Download, Link2, Check, MapPin, Camera } from 'lucide-react'
 import { cn, buildMasonryColumns, generateAltText } from '@/lib/utils'
-import { formatAperture, formatISO, formatFocalLength } from '@/lib/drive'
+import { formatAperture, formatISO, formatFocalLength } from '@/lib/photoFormatting'
 import type { Photo } from '@/types'
 
 interface ShareGalleryProps {

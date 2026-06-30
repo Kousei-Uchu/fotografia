@@ -255,17 +255,17 @@ export default function VerifyPage() {
           )}
 
           {status === 'done' && result && (
-            <div className={cn('border rounded p-5 space-y-4', result.detected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50')} role="region" aria-label="Watermark detection result">
+            <div className={cn('border rounded p-5 space-y-4', result!.detected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50')} role="region" aria-label="Watermark detection result">
               <div className="flex items-start gap-3">
-                {result.detected
+                {result!.detected
                   ? <ShieldCheck size={22} className="text-green-600 flex-shrink-0 mt-0.5" />
                   : <ShieldX size={22} className="text-red-500 flex-shrink-0 mt-0.5" />}
                 <div>
-                  <p className={cn('font-medium text-base', result.detected ? 'text-green-800' : 'text-red-800')}>
-                    {result.detected ? 'Watermark detected' : 'No watermark found'}
+                  <p className={cn('font-medium text-base', result!.detected ? 'text-green-800' : 'text-red-800')}>
+                    {result!.detected ? 'Watermark detected' : 'No watermark found'}
                   </p>
-                  <p className={cn('text-xs mt-1', result.detected ? 'text-green-700' : 'text-red-600')}>
-                    {result.detected
+                  <p className={cn('text-xs mt-1', result!.detected ? 'text-green-700' : 'text-red-600')}>
+                    {result!.detected
                       ? 'The image originated from this site.'
                       : 'The image does not appear to have originated from this site, or has been heavily modified.'}
                   </p>
@@ -287,7 +287,7 @@ export default function VerifyPage() {
                 </div>
                 {false && (
                   <p className="text-2xs text-secondary/70 mt-1.5">
-                    Based on majority vote across {result?.blocksUsed} DCT blocks · ≥ 82% = confirmed · ≥ 90% = high confidence
+                    Based on majority vote across {result!.blocksUsed} DCT blocks · ≥ 82% = confirmed · ≥ 90% = high confidence
                   </p>
                 )}
               </div>
@@ -297,15 +297,15 @@ export default function VerifyPage() {
                   <p className="text-xs text-secondary font-medium mb-1.5">Decoded payload</p>
                   <div className="flex items-center gap-2 bg-white/60 border border-black/10 rounded px-3 py-2">
                     <code className="text-xs text-ink flex-1 break-all font-mono">
-                      {result?.text || <span className="text-muted italic">empty</span>}
+                      {result.text || <span className="text-muted italic">empty</span>}
                     </code>
-                    {result?.text && (
-                      <button onClick={() => copyText(result?.text || '')} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
+                    {result.text && (
+                      <button onClick={() => copyText(result.text)} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
                         {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
                       </button>
                     )}
                   </div>
-                  {result.detected && (
+                  {result!.detected && (
                     <p className="text-2xs text-green-700 mt-1.5">
                       ✓ Matches expected signature.
                     </p>

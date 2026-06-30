@@ -300,7 +300,7 @@ export default function VerifyPage() {
                       {result.text || <span className="text-muted italic">empty</span>}
                     </code>
                     {result.text && (
-                      <button onClick={() => copyText(result.text || '')} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
+                      <button onClick={() => copyText(result?.text || '')} className="flex-shrink-0 text-muted hover:text-ink transition-colors" aria-label="Copy decoded text">
                         {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
                       </button>
                     )}

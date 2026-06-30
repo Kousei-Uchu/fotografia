@@ -34,7 +34,7 @@ export async function GET(
   
   // If parsing fails (NaN), fallback safely to 0 (Original Max Size)
   const size = (hasSizeParam && !isNaN(rawSize)) 
-    ? Math.min(Math.max(rawSize, 64), MAX_SIZE) 
+    ? Math.min(Math.max(rawSize, 2000), MAX_SIZE) 
     : 0
   const fmt = searchParams.get('fmt') === 'jpeg' ? 'jpeg' : 'webp'
   
@@ -64,9 +64,9 @@ export async function GET(
     let img = sharp(Buffer.from(sourceBuffer))
 
     // Only downscale if the user explicitly requested a specific size
-    if (size > 0) {
-      img = img.resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
-    }
+    //if (size > 0) {
+    //  img = img.resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
+    //}
     
     img = img.removeAlpha()
     const { data, info } = await img.raw().toBuffer({ resolveWithObject: true })
@@ -81,6 +81,7 @@ export async function GET(
   let watermarked: Buffer
   try {
     watermarked = embedWatermark(rawPixels, imgWidth, imgHeight).buffer
+    //watermarked = rawPixels;
   } catch (err) {
     console.error(`[proxy] Watermark embed failed for ${fileId}:`, err)
     watermarked = rawPixels

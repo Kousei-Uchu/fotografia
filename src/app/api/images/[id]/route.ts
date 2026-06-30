@@ -12,7 +12,7 @@ import sharp from 'sharp'
 import { embedWatermark } from '@/lib/watermark'
 
 const MAX_SIZE = 3000
-const DEFAULT_SIZE = 1200
+const DEFAULT_SIZE = 0
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -29,7 +29,7 @@ export async function GET(
 
   const { searchParams } = new URL(request.url)
   const rawSize = parseInt(searchParams.get('size') ?? String(DEFAULT_SIZE), 10)
-  const size = Math.min(Math.max(rawSize || DEFAULT_SIZE, 64), MAX_SIZE)
+  const size = Math.min((rawSize || DEFAULT_SIZE), MAX_SIZE)
   const fmt = searchParams.get('fmt') === 'jpeg' ? 'jpeg' : 'webp'
 
   const sourceUrl = `https://lh3.googleusercontent.com/d/${fileId}=s${size}`

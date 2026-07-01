@@ -100,6 +100,7 @@
     overflow: hidden;
     cursor: pointer;
     background: var(--surface);
+    max-height: 50vh;
   }
 
   .photo-card img {

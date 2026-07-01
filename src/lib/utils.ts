@@ -41,6 +41,46 @@ function imageHeight(photo: Photo): number {
 }
 
 /**
+ * Determines the minimum number of columns required so that no image exceeds
+ * maxViewportHeightRatio of the viewport while maintaining its aspect ratio.
+ *
+ * Returns at least minColumns and at most maxColumns.
+ */
+export function chooseMasonryColumnCount(
+  photos: Photo[],
+  containerWidth: number,
+  viewportHeight: number,
+  {
+    minColumns = 2,
+    maxColumns = 6,
+    maxViewportHeightRatio = 0.5,
+  }: {
+    minColumns?: number
+    maxColumns?: number
+    maxViewportHeightRatio?: number
+  } = {}
+): number {
+  if (!photos.length || containerWidth <= 0) {
+    return minColumns
+  }
+
+  const maxImageHeight = viewportHeight * maxViewportHeightRatio
+
+  // Largest column width each image can tolerate before exceeding max height.
+  const limitingColumnWidth = Math.min(
+    ...photos.map(photo => maxImageHeight * photo.aspectRatio)
+  )
+
+  // Number of columns needed to keep column width below the limiting width.
+  const requiredColumns = Math.ceil(containerWidth / limitingColumnWidth)
+
+  return Math.max(
+    minColumns,
+    Math.min(maxColumns, requiredColumns)
+  )
+}
+
+/**
  * Greedy shortest-column insertion.
  * Mutates `heights` in place; returns the chosen column index.
  * On a tie between equal-height columns, the leftmost wins (stable ordering).

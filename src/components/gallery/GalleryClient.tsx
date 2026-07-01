@@ -1,9 +1,16 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import { Search, X, ChevronDown, ChevronRight, Filter, Eye, EyeOff } from 'lucide-react'
-import { cn, filterPhotos, buildMasonryColumns, generateAltText, debounce } from '@/lib/utils'
+import {
+  cn,
+  filterPhotos,
+  buildMasonryColumns,
+  chooseMasonryColumnCount,
+  generateAltText,
+  debounce,
+} from '@/lib/utils'
 import {
   formatAperture,
   formatISO,
@@ -38,6 +45,7 @@ export default function GalleryClient({
   const [showExif, setShowExif] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const galleryRef = useRef<HTMLDivElement>(null)
 
   // Debounced search
   const debouncedSetSearch = useCallback(
@@ -65,10 +73,24 @@ export default function GalleryClient({
     [filtered, filters.page]
   )
 
-  const columns = useMemo(
-    () => buildMasonryColumns(paginated, 3),
-    [paginated]
-  )
+  const columns = useMemo(() => {
+    const width =
+      galleryRef.current?.clientWidth ??
+      (typeof window !== 'undefined' ? window.innerWidth : 1200)
+
+    const viewportHeight =
+      typeof window !== 'undefined'
+        ? window.innerHeight
+        : 1000
+
+    const columnCount = chooseMasonryColumnCount(
+      paginated,
+      width,
+      viewportHeight
+    )
+
+    return buildMasonryColumns(paginated, columnCount)
+  }, [paginated])
 
   const activeFilterCount =
     (filters.tags.length) +
@@ -281,7 +303,7 @@ export default function GalleryClient({
           </div>
         ) : (
           <>
-            <div className="masonry-grid p-1 md:p-2">
+            <div className="masonry-grid p-1 md:p-2" ref={galleryRef}>
               {columns.map((col) => (
                 <div key={col.columnIndex} className="masonry-col">
                   {col.photos.map((photo, idx) => (

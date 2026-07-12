@@ -67,20 +67,6 @@ function sortFilesByDateTakenDesc(files: DriveFile[]): DriveFile[] {
   )
 }
 
-export function sortPhotosByDateTaken(
-  photos: Photo[],
-  order: 'asc' | 'desc' = 'desc'
-): Photo[] {
-  const sign = order === 'desc' ? -1 : 1
-  return [...photos].sort(
-    (a, b) =>
-      sign *
-      (new Date(b.metadata.dateTaken ?? b.createdTime).getTime() -
-        new Date(a.metadata.dateTaken ?? a.createdTime).getTime()) *
-      -sign * -1
-  )
-}
-
 // ─── Fetch Helpers ────────────────────────────────────────────────────────────
 
 export async function listFilesInFolder(
@@ -286,7 +272,6 @@ export function driveFileToPhoto(
     folderId,
     folderPath: breadcrumb,
     locationPrivate: storedMeta.locationPrivate ?? false,
-    dateTaken: getDateTaken(file).toISOString(),
   }
 
   return {

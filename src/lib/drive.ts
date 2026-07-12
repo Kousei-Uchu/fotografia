@@ -40,6 +40,47 @@ const FILE_FIELDS = [
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 
+// ─── Date Taken Helpers ───────────────────────────────────────────────────────
+// Drive's `orderBy` param does NOT support imageMediaMetadata.time, so all
+// "date taken" sorting has to happen client-side after fetching.
+
+/**
+ * Resolves the best-known "date taken" for a file.
+ * EXIF's imageMediaMetadata.time is formatted "YYYY:MM:DD HH:MM:SS" (colons in
+ * the date part), which Date() can't parse directly, so we normalize it first.
+ * Falls back to createdTime/modifiedTime if there's no EXIF date (e.g. screenshots,
+ * edited exports with stripped metadata).
+ */
+export function getDateTaken(file: DriveFile): Date {
+  const time = file.imageMediaMetadata?.time
+  if (time) {
+    const normalized = time.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3')
+    const parsed = new Date(normalized)
+    if (!isNaN(parsed.getTime())) return parsed
+  }
+  return new Date(file.createdTime ?? file.modifiedTime ?? 0)
+}
+
+function sortFilesByDateTakenDesc(files: DriveFile[]): DriveFile[] {
+  return [...files].sort(
+    (a, b) => getDateTaken(b).getTime() - getDateTaken(a).getTime()
+  )
+}
+
+export function sortPhotosByDateTaken(
+  photos: Photo[],
+  order: 'asc' | 'desc' = 'desc'
+): Photo[] {
+  const sign = order === 'desc' ? -1 : 1
+  return [...photos].sort(
+    (a, b) =>
+      sign *
+      (new Date(b.metadata.dateTaken ?? b.createdTime).getTime() -
+        new Date(a.metadata.dateTaken ?? a.createdTime).getTime()) *
+      -sign * -1
+  )
+}
+
 // ─── Fetch Helpers ────────────────────────────────────────────────────────────
 
 export async function listFilesInFolder(
@@ -60,7 +101,8 @@ export async function listFilesInFolder(
       fields: `nextPageToken, files(${FILE_FIELDS})`,
       pageSize: 100,
       pageToken,
-      orderBy: 'createdTime desc',
+      // Not orderBy: 'createdTime desc' anymore — Drive can't sort by EXIF
+      // date taken, so we fetch unsorted and sort client-side below.
     })
 
     const batch = (res.data.files ?? []) as DriveFile[]
@@ -90,7 +132,9 @@ export async function buildFolderTree(
   const files = await listFilesInFolder(rootFolderId)
 
   const subFolders = files.filter((f) => f.mimeType === FOLDER_MIME)
-  const images = files.filter((f) => IMAGE_MIMES.includes(f.mimeType))
+  const images = sortFilesByDateTakenDesc(
+    files.filter((f) => IMAGE_MIMES.includes(f.mimeType))
+  )
 
   const children: DriveFolder[] = []
 
@@ -103,12 +147,40 @@ export async function buildFolderTree(
 
   const rootInfo = await getFileMetadata(rootFolderId)
 
+  // The folder's "most recent" is whichever is newer: its own newest direct
+  // image, or the newest image found anywhere in a descendant subfolder.
+  const candidateDates: number[] = []
+  if (images.length > 0) {
+    candidateDates.push(getDateTaken(images[0]).getTime())
+  }
+  for (const child of children) {
+    if (child.mostRecentDateTaken) {
+      candidateDates.push(new Date(child.mostRecentDateTaken).getTime())
+    }
+  }
+  const mostRecentDateTaken =
+    candidateDates.length > 0
+      ? new Date(Math.max(...candidateDates)).toISOString()
+      : undefined
+
+  // Sort subfolders by their most recent image's date taken (recursive), newest first
+  children.sort((a, b) => {
+    const aTime = a.mostRecentDateTaken
+      ? new Date(a.mostRecentDateTaken).getTime()
+      : 0
+    const bTime = b.mostRecentDateTaken
+      ? new Date(b.mostRecentDateTaken).getTime()
+      : 0
+    return bTime - aTime
+  })
+
   return {
     id: rootFolderId,
     name: rootInfo.name,
     children,
     imageCount: images.length,
     createdTime: rootInfo.createdTime,
+    mostRecentDateTaken,
   }
 }
 
@@ -121,13 +193,33 @@ export async function crawlAllImages(
   const files = await listFilesInFolder(folderId)
 
   const subFolders = files.filter((f) => f.mimeType === FOLDER_MIME)
-  const imageFiles = files.filter((f) => IMAGE_MIMES.includes(f.mimeType))
+  const imageFiles = sortFilesByDateTakenDesc(
+    files.filter((f) => IMAGE_MIMES.includes(f.mimeType))
+  )
 
   const photos: Photo[] = imageFiles.map((f) =>
     driveFileToPhoto(f, folderId, breadcrumb)
   )
 
-  for (const folder of subFolders) {
+  // Sort subfolders by their most recent image (date taken) before recursing,
+  // so the flattened result reads newest-folder-first too.
+  const foldersWithRecency = await Promise.all(
+    subFolders.map(async (folder) => {
+      const tree = await buildFolderTree(folder.id, 0, 0) // shallow: just need mostRecentDateTaken
+      return { folder, mostRecentDateTaken: tree.mostRecentDateTaken }
+    })
+  )
+  foldersWithRecency.sort((a, b) => {
+    const aTime = a.mostRecentDateTaken
+      ? new Date(a.mostRecentDateTaken).getTime()
+      : 0
+    const bTime = b.mostRecentDateTaken
+      ? new Date(b.mostRecentDateTaken).getTime()
+      : 0
+    return bTime - aTime
+  })
+
+  for (const { folder } of foldersWithRecency) {
     const subPhotos = await crawlAllImages(folder.id, [
       ...breadcrumb,
       folder.name,
@@ -148,7 +240,6 @@ export function driveFileToPhoto(
   const meta = file.imageMediaMetadata
   const appProps = file.appProperties ?? {}
 
-  // Parse stored metadata from appProperties
   const storedMeta: Partial<ImageMetadata> = {}
   if (appProps.tags) storedMeta.tags = JSON.parse(appProps.tags)
   if (appProps.category) storedMeta.category = appProps.category
@@ -167,7 +258,6 @@ export function driveFileToPhoto(
   const height = meta?.height ?? 1280
   const aspectRatio = width / height
 
-  // Build location (respects privacy toggle)
   let location = undefined
   if (meta?.location && storedMeta.locationPrivate !== true) {
     location = {
@@ -196,6 +286,7 @@ export function driveFileToPhoto(
     folderId,
     folderPath: breadcrumb,
     locationPrivate: storedMeta.locationPrivate ?? false,
+    dateTaken: getDateTaken(file).toISOString(),
   }
 
   return {

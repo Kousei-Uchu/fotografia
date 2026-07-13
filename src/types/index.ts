@@ -49,6 +49,7 @@ export interface DriveFolder {
   children?: DriveFolder[]
   imageCount?: number
   createdTime?: string
+  mostRecentDateTaken?: string
 }
 
 // ─── Image & Metadata Types ───────────────────────────────────────────────────

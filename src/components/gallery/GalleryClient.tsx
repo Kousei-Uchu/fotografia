@@ -366,6 +366,7 @@ function GalleryCard({ photo, showExif, priority, onClick }: GalleryCardProps) {
     >
       <Image
         src={photo.thumbnailUrl}
+        unoptimized={photo.thumbnailUrl.startsWith('/api/')}
         alt={alt}
         width={photo.width}
         height={photo.height}

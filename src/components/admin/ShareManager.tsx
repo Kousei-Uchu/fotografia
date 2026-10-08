@@ -89,7 +89,7 @@ export default function ShareManager({ selectedPhotos, onClose, onClearSelection
                 <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                   {selectedPhotos.map(photo => (
                     <div key={photo.id} className="relative flex-shrink-0 w-14 h-14 bg-surface rounded overflow-hidden">
-                      <Image src={photo.thumbnailUrl} alt={photo.metadata.title ?? photo.name} fill className="object-cover" sizes="56px" />
+                      <Image src={photo.thumbnailUrl} unoptimized={photo.thumbnailUrl.startsWith('/api/')} alt={photo.metadata.title ?? photo.name} fill className="object-cover" sizes="56px" />
                     </div>
                   ))}
                 </div>

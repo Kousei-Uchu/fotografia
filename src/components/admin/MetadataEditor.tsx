@@ -56,6 +56,7 @@ export default function MetadataEditor({
       <div className="relative bg-ink aspect-video flex-shrink-0">
         <Image
           src={photo.thumbnailUrl}
+          unoptimized={photo.thumbnailUrl.startsWith('/api/')}
           alt={photo.name}
           fill
           className="object-contain"

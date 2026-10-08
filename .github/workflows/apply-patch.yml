@@ -1,0 +1,76 @@
+name: Apply uploaded patch
+
+# Upload a *.patch file into the patches/ folder on a NEW branch (not main).
+# This workflow applies it, deletes the patch file, commits to the same
+# branch, and opens a pull request against the default branch.
+
+on:
+  push:
+    paths:
+      - 'patches/*.patch'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  apply:
+    # Never run on the default branch, so main is only ever changed via PR.
+    if: github.ref_name != github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply patch files
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(patches/*.patch)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No patch files found in patches/"
+            exit 1
+          fi
+          for f in "${files[@]}"; do
+            echo "Applying $f"
+            git apply --3way --whitespace=nowarn "$f"
+            git rm -q --cached "$f" 2>/dev/null || true
+            rm -f "$f"
+          done
+
+      - name: Commit and push
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit after applying patch."
+            exit 0
+          fi
+          git commit -F - <<'MSG'
+          Fix gallery images failing to load via watermark proxy
+
+          - Download originals through the Drive API (service account) with
+            the lh3 CDN as a fallback
+          - Cap the watermarked master at 3072px and apply EXIF rotation to
+            bound memory use on serverless functions
+          - Mark proxied next/image sources as unoptimized to avoid a second
+            fetch and re-encode through the image optimizer
+
+          Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+          Claude-Session: https://claude.ai/code/session_016jfoUKVhHDgwixZAAcLUu5
+          MSG
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          base="${{ github.event.repository.default_branch }}"
+          gh pr create --base "$base" --head "$GITHUB_REF_NAME" \
+            --title "Fix gallery images failing to load" \
+            --body "Applied from an uploaded patch. Check the Vercel preview loads images before merging." \
+          || echo "PR creation failed (see note in README). Open one manually: https://github.com/${{ github.repository }}/compare/${base}...${GITHUB_REF_NAME}"

@@ -1,0 +1,11 @@
+name: Notify aspen-collection
+on:
+  push:
+    branches: [main, master]
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh api repos/Kousei-Uchu/aspen-collection/dispatches -f event_type=submodule-updated -f "client_payload[repo]=${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.COLLECTION_PAT }}

@@ -108,6 +108,23 @@ export async function getFileMetadata(fileId: string): Promise<DriveFile> {
   return res.data as DriveFile
 }
 
+/**
+ * Downloads the original file bytes through the Drive API using the service
+ * account. Unlike lh3.googleusercontent.com/d/<id>, this works for private
+ * files and isn't subject to the CDN's anti-hotlink / datacenter-IP limits.
+ */
+export async function downloadFileBuffer(
+  fileId: string,
+  timeoutMs = 20_000
+): Promise<Buffer> {
+  const drive = getDriveClient()
+  const res = await drive.files.get(
+    { fileId, alt: 'media', supportsAllDrives: true },
+    { responseType: 'arraybuffer', timeout: timeoutMs }
+  )
+  return Buffer.from(res.data as ArrayBuffer)
+}
+
 // ─── Folder Tree Builder ──────────────────────────────────────────────────────
 
 export async function buildFolderTree(

@@ -24,8 +24,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { embedWatermark } from '@/lib/watermark'
+import { downloadFileBuffer } from '@/lib/drive'
 
 const MAX_SIZE = 16383
+// Longest edge of the watermarked master. The watermark pass allocates several
+// Float64 planes per pixel, so full-res originals (24MP+) can exceed a
+// serverless function's memory. 3072px is still comfortably above the largest
+// delivery size the gallery requests (2048), so nothing gets upscaled.
+const MASTER_MAX_DIM = 3072
+
+async function fetchFromCdn(fileId: string): Promise<Buffer> {
+  const res = await fetch(`https://lh3.googleusercontent.com/d/${fileId}=s${MASTER_MAX_DIM}`, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FotografiaBot/1.0; watermark-proxy)' },
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!res.ok) throw new Error(`CDN returned ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
+}
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -87,39 +102,51 @@ export async function GET(
   let master = getCachedMaster(fileId)
 
   if (!master) {
-    // Always fetch the largest available source (=s0), never the
-    // caller-requested size - the watermark is embedded exactly once per
-    // image, at the highest resolution available, regardless of what
-    // delivery size triggered this request.
-    const sourceUrl = `https://lh3.googleusercontent.com/d/${fileId}=s0`
-    let sourceBuffer: ArrayBuffer
-    try {
-      const res = await fetch(sourceUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FotografiaBot/1.0; watermark-proxy)' },
-        signal: AbortSignal.timeout(15_000),
-      })
-      if (!res.ok) {
-        console.error(`[proxy] Drive CDN returned ${res.status} for ${fileId}`)
-        return new NextResponse('Source image unavailable', { status: 502 })
+    // Source order: Drive API (service account, works for private files and
+    // isn't throttled like the public CDN), then the lh3 CDN as a fallback.
+    // Either way the watermark is embedded exactly once per image, on a
+    // master capped at MASTER_MAX_DIM so memory stays bounded.
+    let rawPixels: Buffer | null = null
+    let imgWidth = 0
+    let imgHeight = 0
+
+    const sources: Array<{ name: string; load: () => Promise<Buffer> }> = [
+      { name: 'drive-api', load: () => downloadFileBuffer(fileId) },
+      { name: 'lh3-cdn', load: fetchFromCdn.bind(null, fileId) },
+    ]
+
+    for (const source of sources) {
+      try {
+        const sourceBuffer = await source.load()
+        // .rotate() bakes in EXIF orientation (the Drive API returns the
+        // untouched original, unlike the CDN); the resize cap happens in the
+        // decoder so a 24MP+ original is never fully expanded in memory.
+        const { data, info } = await sharp(sourceBuffer, {
+          limitInputPixels: 400_000_000,
+          sequentialRead: true,
+        })
+          .rotate()
+          .resize({
+            width: MASTER_MAX_DIM,
+            height: MASTER_MAX_DIM,
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .toColourspace('srgb')
+          .removeAlpha()
+          .raw()
+          .toBuffer({ resolveWithObject: true })
+        rawPixels = data
+        imgWidth = info.width
+        imgHeight = info.height
+        break
+      } catch (err) {
+        console.error(`[proxy] ${source.name} failed for ${fileId}:`, err)
       }
-      sourceBuffer = await res.arrayBuffer()
-    } catch (err) {
-      console.error(`[proxy] Fetch failed for ${fileId}:`, err)
-      return new NextResponse('Failed to fetch source image', { status: 502 })
     }
 
-    let rawPixels: Buffer
-    let imgWidth: number
-    let imgHeight: number
-    try {
-      const img = sharp(Buffer.from(sourceBuffer)).removeAlpha()
-      const { data, info } = await img.raw().toBuffer({ resolveWithObject: true })
-      rawPixels = data
-      imgWidth = info.width
-      imgHeight = info.height
-    } catch (err) {
-      console.error(`[proxy] Sharp decode failed for ${fileId}:`, err)
-      return new NextResponse('Failed to decode image', { status: 500 })
+    if (!rawPixels) {
+      return new NextResponse('Source image unavailable', { status: 502 })
     }
 
     let watermarkedPixels: Buffer

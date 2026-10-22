@@ -120,6 +120,7 @@ function PhotoTile({ photo, priority = false, onClick }: PhotoTileProps) {
     >
       <Image
         src={photo.thumbnailUrl}
+        unoptimized={photo.thumbnailUrl.startsWith('/api/')}
         alt={alt}
         width={photo.width}
         height={photo.height}

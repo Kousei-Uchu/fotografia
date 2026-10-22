@@ -66,6 +66,7 @@ export default function PhotoLightbox({ photo, onClose }: PhotoLightboxProps) {
         <div className="relative max-w-5xl max-h-full w-full">
           <Image
             src={photo.fullUrl}
+            unoptimized={photo.fullUrl.startsWith('/api/')}
             alt={alt}
             width={photo.width}
             height={photo.height}

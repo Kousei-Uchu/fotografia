@@ -68,7 +68,7 @@ export default function ShareGallery({ photos, token }: ShareGalleryProps) {
                 return (
                   <button key={photo.id} className="photo-card w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark"
                     onClick={() => setLightboxIdx(absIdx)} aria-label={`View: ${alt}`} style={{ aspectRatio: photo.aspectRatio }}>
-                    <Image src={`/api/images/${photo.driveId}?size=800`} alt={alt} width={photo.width} height={photo.height}
+                    <Image src={`/api/images/${photo.driveId}?size=800`} unoptimized alt={alt} width={photo.width} height={photo.height}
                       loading={idx < 4 && col.columnIndex < 2 ? 'eager' : 'lazy'} className="w-full h-full object-cover"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" />
                     <div className="meta-overlay" aria-hidden="true">
@@ -104,7 +104,7 @@ export default function ShareGallery({ photos, token }: ShareGalleryProps) {
             <span className="label text-white/50">{lightboxIdx + 1} / {photos.length}</span>
           </div>
           <div className="relative max-w-5xl max-h-full w-full flex items-center justify-center p-10" onClick={(e) => e.stopPropagation()}>
-            <Image src={`/api/images/${activePhoto.driveId}?size=2048`} alt={generateAltText(activePhoto)}
+            <Image src={`/api/images/${activePhoto.driveId}?size=2048`} unoptimized alt={generateAltText(activePhoto)}
               width={activePhoto.width} height={activePhoto.height} className="max-h-[85vh] w-auto object-contain" priority sizes="100vw" />
           </div>
           <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" onClick={(e) => e.stopPropagation()}>

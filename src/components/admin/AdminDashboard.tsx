@@ -237,6 +237,7 @@ export default function AdminDashboard({
                       <div className="w-10 h-10 relative">
                         <Image
                           src={photo.thumbnailUrl}
+                          unoptimized={photo.thumbnailUrl.startsWith('/api/')}
                           alt=""
                           fill
                           className="object-cover rounded"
@@ -404,6 +405,7 @@ function AdminPhotoCard({
     >
       <Image
         src={photo.thumbnailUrl}
+        unoptimized={photo.thumbnailUrl.startsWith('/api/')}
         alt={photo.name}
         fill
         className="object-cover"
